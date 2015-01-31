@@ -1,0 +1,36 @@
+{
+  "name": "great-scott",
+  "version": "0.0.1",
+  "description": "A Marty-like data source for postgres.",
+  "main": "dist/great-scott.js",
+  "dependencies": {
+    "bluebird": "^2.9.4",
+    "immutable": "^3.6.2",
+    "lodash": "^3.0.1",
+    "pg": "^4.2.0",
+    "squel": "^3.10.0"
+  },
+  "devDependencies": {
+    "6to5": "^3.2.0"
+  },
+  "scripts": {
+    "prepublish": "rm -r dist/ || true && node_modules/.bin/6to5 src/ --modules common --out-dir dist",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/isaiahdw/great-scott.git"
+  },
+  "keywords": [
+    "pg",
+    "postgres",
+    "marty",
+    "data source"
+  ],
+  "author": "Isaiah DeRose-Wilson <isaiahdw@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/isaiahdw/great-scott/issues"
+  },
+  "homepage": "https://github.com/isaiahdw/great-scott"
+}
