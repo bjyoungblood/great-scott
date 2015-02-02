@@ -73,7 +73,7 @@ function DataSource(mixinOptions = {}) {
   return mixin;
 }
 
-export default function CreateDataSource(options = {}) {
+export default function createDataSource(options = {}) {
 
   function extendStateSource(dataSource, options) {
     _.extend.apply(_, [dataSource].concat(
