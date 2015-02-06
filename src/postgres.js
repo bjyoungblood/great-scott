@@ -38,6 +38,7 @@ class DataSource {
     this.connectionString = options.connectionString;
     this.model = options.model || record;
     this.idAttribute = options.idAttribute || 'id';
+    this.tableName = options.tableName || '';
 
     this.builder = squel;
   }
