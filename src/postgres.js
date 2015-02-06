@@ -1,89 +1,130 @@
 'use strict';
 
+import assert from 'assert';
+import { format } from 'util';
+
 import _ from 'lodash';
-import pg from 'pg';
 import Promise from 'bluebird';
 import squel from 'squel';
 import { Record as record } from 'immutable';
-import assert from 'assert';
+
+import pools from './pools';
+import {
+  ForeignKeyConstraintError,
+  NotNullConstraintError,
+  UniqueConstraintError,
+} from './errors';
+
+const DUP_KEY = /^duplicate key value violates unique constraint/i;
+const NOT_NULL = /^null value in column ".*" violates not-null constraint$/i;
+const FOREIGN_KEY = /^insert or update on table ".*" violates foreign key constraint/;
 
 // Enable extra Postgres features (this is required!).
 squel.useFlavour('postgres');
 
-function DataSource(mixinOptions = {}) {
+function getClient(connectionString) {
+  var pool = pools.get(connectionString);
 
-  // Default database connection string to DATABASE_URL environment variable.
-  mixinOptions.connectionStr = mixinOptions.connectionStr || process.env.DATABASE_URL;
-
-  assert(mixinOptions.connectionStr, 'A database connection string is required.');
-
-  mixinOptions.model = mixinOptions.model || record;
-
-  var mixin = {
-
-    builder : squel,
-
-    execute: (query) => {
-
-      return new Promise((resolve, reject) => {
-
-        // Get a connection from the pool
-        pg.connect(mixinOptions.connectionStr, (err, client, done) => {
-
-          // Return the connection to the pool and abort when there is a connection error.
-          if (err) {
-            done();
-            reject(err.toString());
-            return;
-          }
-
-          query = query.toParam();
-
-          // Execute the query
-          client.query(query.text, query.values, (err, results) => {
-
-            // Return the connection to the pool and reject with the error message.
-            if (err) {
-              done();
-              reject(err.toString());
-              return;
-            }
-
-            // Return the connection to the pool
-            done();
-
-            var rows = results.rows.map((row) => {
-              return new mixinOptions.model(row);
-            });
-
-            // Returns the results
-            resolve({
-              rowCount : results.rowCount,
-              rows : rows
-            });
-
-          });
-
-        });
-      });
-    }
-
-  };
-
-  return mixin;
+  return pool.acquireAsync()
+    .disposer(function(client) {
+      pool.release(client);
+    });
 }
 
-export default function CreateDataSource(options = {}) {
+class DataSource {
+  constructor(options) {
+    assert(options.connectionString, 'options.connectionString is required.');
 
-  function extendStateSource(dataSource, options) {
-    _.extend.apply(_, [dataSource].concat(
-      options,
-      options.mixins,
-      DataSource(options))
-    );
+    this.connectionString = options.connectionString;
+    this.model = options.model || record;
+    this.idAttribute = options.idAttribute || 'id';
+
+    this.builder = squel;
   }
 
-  extendStateSource(this, options);
+  parse(row) {
+    return new this.model(row);
+  }
 
-  return this;
+  format(model) {
+    return model.toObject();
+  }
+
+  insert(model) {
+    var fields = this.format(model);
+
+    _.each(fields, function(value, key) {
+      if (_.isUndefined(value)) {
+        delete fields[key];
+      }
+    });
+
+    var query = this.builder
+      .insert()
+      .into(this.tableName)
+      .setFields(fields)
+      .returning('*');
+
+    return this.execute(query)
+      .then((result) => {
+        return result[0];
+      });
+  }
+
+  update(model) {
+    var fields = this.format(model);
+
+    _.each(fields, function(value, key) {
+      if (_.isUndefined(value)) {
+        delete fields[key];
+      }
+    });
+
+    var query = this.builder
+      .update()
+      .table(this.tableName)
+      .setFields(fields)
+      .where(format('%s = ?', this.idAttribute), fields[idAttribute])
+      .returning('*');
+
+    return this.execute(query)
+      .then((result) => {
+        return result[0];
+      });
+  }
+
+  execute(query) {
+    return Promise.using(getClient(this.connectionString), (client) => {
+      query = query.toParam();
+
+      return client.queryAsync(query.text, query.values);
+    }).then((results) => {
+      return results.rows.map((row) => this.parse(row));
+    }).catch(function(err) {
+      if (err.message.match(DUP_KEY)) {
+        var newErr = new UniqueConstraintError(err.message, err.code);
+        newErr.detail = err.detail;
+        newErr.table = err.table;
+        newErr.constraint = err.constraint;
+        throw newErr;
+      } else if (err.message.match(NOT_NULL)) {
+        var newErr = new NotNullConstraintError(err.message, err.code);
+        newErr.detail = err.detail;
+        newErr.table = err.table;
+        newErr.column = err.column;
+        throw newErr;
+      } else if (err.message.match(FOREIGN_KEY)) {
+        var newErr = new ForeignKeyConstraintError(err.message, err.code);
+        newErr.detail = err.detail;
+        newErr.table = err.table;
+        newErr.column = err.column;
+        newErr.constraint = err.constraint;
+        throw newErr;
+      }
+
+      throw err;
+    });
+  }
 }
+
+export default DataSource;

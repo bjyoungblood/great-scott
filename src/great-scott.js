@@ -1,5 +1,5 @@
 'use strict';
 
-import createStateSource from './postgres';
+import DataSource from './postgres';
 
-export { createStateSource };
+export { DataSource };
