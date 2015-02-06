@@ -1,5 +1,17 @@
 'use strict';
 
 import DataSource from './postgres';
+import {
+  PostgresError,
+  ForeignKeyConstraintError,
+  NotNullConstraintError,
+  UniqueConstraintError,
+} from './errors';
 
-export { DataSource };
+export default {
+  DataSource,
+  PostgresError,
+  ForeignKeyConstraintError,
+  NotNullConstraintError,
+  UniqueConstraintError,
+};
