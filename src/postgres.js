@@ -45,9 +45,13 @@ class DataSource {
   find(id) {
     var query = this.builder
       .select()
-      .from(this.tableName);
+      .from(this.tableName)
+      .where(format('%s = ?', this.idAttribute), id);
 
-    return this.execute(query);
+    return this.execute(query)
+      .then((result) => {
+        return result[0];
+      });
   }
 
   findAll() {
