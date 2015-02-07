@@ -51,6 +51,22 @@ class DataSource {
     return model.toObject();
   }
 
+  find(id) {
+    var query = this.builder
+      .select()
+      .from(this.tableName);
+
+    return this.execute(query);
+  }
+
+  findAll() {
+    var query = this.builder
+      .select()
+      .from(this.tableName);
+
+    return this.execute(query);
+  }
+
   insert(model) {
     var fields = this.format(model);
 
@@ -92,6 +108,23 @@ class DataSource {
       .then((result) => {
         return result[0];
       });
+  }
+
+  delete(idOrModel) {
+    var id;
+    if (idOrModel instanceof this.model) {
+      id = idOrModel.get(this.idAttribute);
+    } else {
+      id = idOrModel;
+    }
+
+    var query = this.builder
+      .delete()
+      .from(this.tableName)
+      .where(format('%s = ?', this.idAttribute), id);
+
+    return this.execute(query)
+      .then(() => true);
   }
 
   execute(query) {
