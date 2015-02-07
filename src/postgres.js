@@ -22,15 +22,6 @@ const FOREIGN_KEY = /^insert or update on table ".*" violates foreign key constr
 // Enable extra Postgres features (this is required!).
 squel.useFlavour('postgres');
 
-function getClient(connectionString) {
-  var pool = pools.get(connectionString);
-
-  return pool.acquireAsync()
-    .disposer(function(client) {
-      pool.release(client);
-    });
-}
-
 class DataSource {
   constructor(options) {
     assert(options.connectionString, 'options.connectionString is required.');
@@ -128,7 +119,7 @@ class DataSource {
   }
 
   execute(query) {
-    return Promise.using(getClient(this.connectionString), (client) => {
+    return Promise.using(this._getClient(), (client) => {
       query = query.toParam();
 
       return client.queryAsync(query.text, query.values);
@@ -158,6 +149,15 @@ class DataSource {
 
       throw err;
     });
+  }
+
+  _getClient() {
+    var pool = pools.get(this.connectionString);
+
+    return pool.acquireAsync()
+      .disposer((client) => {
+        pool.release(client);
+      });
   }
 }
 
