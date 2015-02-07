@@ -9,14 +9,16 @@ Postgres data source library
 Optional properties
 
 - `model` - A Immutable Data Record (see https://www.npmjs.com/package/immutable).
-- `connectionStr` - A Postgres connection string (will default to the DATABASE_URL environment variable).
+- `connectionString` - A Postgres connection string.
+- `tableName` - (required for insert/update helpers) the name of the table to extract data from
+- `idAttribute` - (optional) the primary key attribute
 
 ### Example Usage
 
 ```javascript
 
-var GreatScott = require('great-scott');
-var Avery = require('avery');
+import { DataSource } from 'great-scott';
+import Avery from 'avery';
 
 var UserModel = Avery.Model({
 
@@ -29,31 +31,44 @@ var UserModel = Avery.Model({
 
 });
 
-var UserDataSource = GreatScott.createDataSource({
+class UserDataSource extends DataSource {
+  constructor() {
+    super({
+      tableName : 'users',
+      model : UserModel,
+      connectionString : process.env.POSTGRES_URL,
+    });
+  }
 
-  model : UserModel,
+  // object to model with camel case keys
+  parse(row) {
+    return new this.model(_.transform(row, function(memo, val, key) {
+      memo[ _.camelCase(key) ] = val;
+      return memo;
+    }));
+  }
 
-  findAllUsers : function() {
+  // model to object with snake case keys
+  format(model) {
+    var row = model.toObject();
+    return _.transform(row, function(memo, val, key) {
+      memo[ _.snakeCase(key) ] = val;
+      return memo;
+    });
+  }
 
+  findAll : function() {
     var query = this.builder
       .select()
       .from('users');
 
     return this.execute(query);
-  },
-
-  createUser : function(userModel) {
-
-    var query = this.builder
-      .insert()
-      .into('users')
-      .setFields(userModel.toObject())
-      .returning('*');
-
-    return this.execute(query);
   }
 
-});
+  createUser(userModel) {
+    return this.insert(userMode);
+  }
+}
 
 UserDataSource.createUser(myUser)
 .then(function(results) {
