@@ -10,6 +10,7 @@ import { Record as record } from 'immutable';
 
 import pools from './pools';
 import {
+  NotFoundError,
   ForeignKeyConstraintError,
   NotNullConstraintError,
   UniqueConstraintError,
@@ -50,6 +51,10 @@ class DataSource {
 
     return this.execute(query)
       .then((result) => {
+        if (! result.length) {
+          throw new NotFoundError();
+        }
+
         return result[0];
       });
   }

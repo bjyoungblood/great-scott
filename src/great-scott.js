@@ -6,6 +6,7 @@ import {
   ForeignKeyConstraintError,
   NotNullConstraintError,
   UniqueConstraintError,
+  NotFoundError,
 } from './errors';
 
 export default {
@@ -14,4 +15,5 @@ export default {
   ForeignKeyConstraintError,
   NotNullConstraintError,
   UniqueConstraintError,
+  NotFoundError,
 };

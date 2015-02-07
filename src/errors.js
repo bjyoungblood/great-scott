@@ -18,9 +18,13 @@ class NotNullConstraintError extends PostgresError {
 class UniqueConstraintError extends PostgresError {
 }
 
+class NotFoundError extends PostgresError {
+}
+
 export default {
   PostgresError,
   ForeignKeyConstraintError,
   NotNullConstraintError,
   UniqueConstraintError,
+  NotFoundError,
 };
