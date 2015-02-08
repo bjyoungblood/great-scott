@@ -95,7 +95,7 @@ class DataSource {
       .update()
       .table(this.tableName)
       .setFields(fields)
-      .where(format('%s = ?', this.idAttribute), fields[idAttribute])
+      .where(format('%s = ?', this.idAttribute), fields[this.idAttribute])
       .returning('*');
 
     return this.execute(query)
