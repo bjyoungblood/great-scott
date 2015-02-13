@@ -24,7 +24,23 @@ class PostgresError extends Error {
       return RelationNotFoundError.fromError(err);
     }
 
-    return err;
+    return PostgresError.wrap(err);
+  }
+
+  static wrap(err) {
+    var newError = new PostgresError(err.message, err.code);
+
+    for (let prop in err) {
+      if (prop === 'cause') {
+        continue;
+      }
+
+      if (err.hasOwnProperty(prop)) {
+        newError[prop] = err[prop];
+      }
+    }
+
+    return newError;
   }
 }
 
@@ -68,6 +84,13 @@ class RelationNotFoundError extends PostgresError {
 class NotFoundError extends PostgresError {
 }
 
+class ShortCircuitError extends Error {
+  constructor(payload) {
+    this.name = this.constructor.name;
+    this.payload = payload;
+  }
+}
+
 export default {
   PostgresError,
   ForeignKeyConstraintError,
@@ -75,4 +98,5 @@ export default {
   UniqueConstraintError,
   NotFoundError,
   RelationNotFoundError,
+  ShortCircuitError,
 };
