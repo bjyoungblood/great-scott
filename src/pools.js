@@ -2,20 +2,20 @@
 
 import Promise from 'bluebird';
 import pg from 'pg';
-import { Pool } from 'generic-pool';
+import { createPool } from 'generic-pool';
 
 Promise.promisifyAll(pg.Client.prototype);
 
-var pools = {};
+let pools = {};
 
 export default {
   get : function(connectionString, config) {
     config = config || {};
     if (! pools[connectionString]) {
-      var pool = Pool({
+      let pool = createPool({
         name : connectionString,
         create : function(callback) {
-          var client = new pg.Client(connectionString);
+          let client = new pg.Client(connectionString);
 
           client.on('connect', function(err) {
             callback(err, client);

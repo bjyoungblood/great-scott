@@ -1,11 +1,13 @@
-6TO5 = node_modules/.bin/6to5
+BABEL = node_modules/.bin/babel
+JSCS = node_modules/.bin/jscs
+JSHINT = node_modules/.bin/jshint
 
 export NODE_ENV = test
 
 .PHONY: build clean dist lint
 
 build:
-	$(6TO5) src/ --modules common --out-dir dist
+	$(BABEL) src/ --modules common --out-dir dist
 
 clean:
 	rm -rf dist coverage
@@ -15,5 +17,5 @@ dist:
 	make build
 
 lint:
-	jshint .
-	jscs -c .jscsrc .
+	$(JSHINT) .
+	$(JSCS) -c .jscsrc .

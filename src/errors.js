@@ -1,3 +1,4 @@
+/* jshint latedef:false */
 'use strict';
 
 const DUP_KEY = /^duplicate key value violates unique constraint/i;
@@ -51,7 +52,7 @@ class NotNullConstraintError extends PostgresError {
 
 class UniqueConstraintError extends PostgresError {
   static fromError(err) {
-    var newErr = new UniqueConstraintError(err.message, err.code);
+    let newErr = new UniqueConstraintError(err.message, err.code);
     newErr.detail = err.detail;
     newErr.table = err.table;
     newErr.constraint = err.constraint;

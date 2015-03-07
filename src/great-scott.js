@@ -7,7 +7,7 @@ import {
   NotNullConstraintError,
   UniqueConstraintError,
   NotFoundError,
-  RelationNotFoundError,
+  RelationNotFoundError
 } from './errors';
 
 export default {
