@@ -127,7 +127,7 @@ class DataSource {
   }
 
   execute(query) {
-    this.execRaw(query).then((results) => {
+    return this.execRaw(query).then((results) => {
       return results.rows.map((row) => this.parse(row));
     }).catch((err) => {
       throw PostgresError.factory(err);

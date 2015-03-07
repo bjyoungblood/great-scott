@@ -2,7 +2,7 @@
 
 import Promise from 'bluebird';
 import pg from 'pg';
-import { createPool } from 'generic-pool';
+import { Pool as createPool } from 'generic-pool';
 
 Promise.promisifyAll(pg.Client.prototype);
 

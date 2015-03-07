@@ -6,13 +6,14 @@
   "dependencies": {
     "bluebird": "^2.9.4",
     "generic-pool": "^2.1.1",
-    "immutable": "^3.6.2",
     "lodash": "^3.0.1",
     "pg": "^4.2.0",
     "squel": "^3.10.0"
   },
   "devDependencies": {
-    "6to5": "^3.2.0"
+    "babel": "^4.7.1",
+    "jscs": "^1.11.3",
+    "jshint": "^2.6.3"
   },
   "scripts": {
     "prepublish": "rm -r dist/ || true && node_modules/.bin/6to5 src/ --modules common --out-dir dist",
