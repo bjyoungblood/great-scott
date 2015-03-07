@@ -1,10 +1,9 @@
 {
-  "additionalRules": [
-    "node_modules/jscs-jsdoc/lib/rules/*.js"
-  ],
-  "esprima": "esprima-fb",
+  "esnext": true,
+  "esprimaOptions": { "tolerant": true },
   "excludeFiles": [
-    "node_modules/**",
+    "dist/**",
+    "node_modules/**"
   ],
   "fileExtensions": [".js"],
   "requireCurlyBraces": [
@@ -31,19 +30,17 @@
     "return",
     "typeof"
   ],
+  "disallowMultipleLineStrings": true,
   "requireSpaceBeforeBlockStatements": true,
   "requireSpacesInConditionalExpression": true,
-  "requireSpacesInFunctionExpression": {
+  "requireSpacesInAnonymousFunctionExpression": {
     "beforeOpeningCurlyBrace": true
   },
-  "disallowSpacesInFunctionExpression": {
-    "beforeOpeningRoundBrace": true
-  },
+  "requireParenthesesAroundIIFE": true,
   "disallowMultipleVarDecl": true,
   "requireBlocksOnNewline": true,
   "disallowEmptyBlocks": true,
   "requireSpacesInsideObjectBrackets": "all",
-  "requireSpacesInsideArrayBrackets": "all",
   "disallowQuotedKeysInObjects": true,
   "requireSpaceAfterObjectKeys": true,
   "requireSpaceBeforeObjectValues": true,
@@ -55,12 +52,28 @@
   "requireSpaceAfterBinaryOperators": true,
   "disallowMultipleLineBreaks": true,
   "disallowTrailingWhitespace": true,
+  "requireLineBreakAfterVariableAssignment": true,
   "requireLineFeedAtFileEnd": true,
   "requireCapitalizedConstructors": true,
   "requireDotNotation": true,
   "requireSpaceAfterLineComment": true,
   "disallowNewlineBeforeBlockStatements": true,
   "validateLineBreaks": "LF",
-  "validateQuoteMarks": "'",
-  "validateIndentation": 2
+  "validateIndentation": 2,
+  "validateParameterSeparator": ", ",
+  "safeContextKeyword": ["self"],
+  "requireCamelCaseOrUpperCaseIdentifiers": true,
+  "requireTrailingComma": {
+    "ignoreSingleValue": true,
+    "ignoreSingleLine": true
+  },
+  "validateQuoteMarks": {
+    "mark": "'",
+    "escape": true
+  },
+  "maximumLineLength": {
+    "value": 100,
+    "allowUrlComments": true,
+    "allowRegex": true
+  }
 }
