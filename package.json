@@ -1,6 +1,6 @@
 {
   "name": "great-scott",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "A Marty-like data source for postgres.",
   "main": "dist/great-scott.js",
   "dependencies": {
