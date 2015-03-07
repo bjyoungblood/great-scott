@@ -6,12 +6,11 @@ import { format } from 'util';
 import _ from 'lodash';
 import Promise from 'bluebird';
 import squel from 'squel';
-import { Record as record } from 'immutable';
 
 import pools from './pools';
 import {
   PostgresError,
-  NotFoundError,
+  NotFoundError
 } from './errors';
 
 // Enable extra Postgres features (this is required!).
@@ -22,7 +21,6 @@ class DataSource {
     assert(options.connectionString, 'options.connectionString is required.');
 
     this.connectionString = options.connectionString;
-    this.model = options.model || record;
     this.idAttribute = options.idAttribute || 'id';
     this.tableName = options.tableName || '';
 
@@ -30,18 +28,25 @@ class DataSource {
   }
 
   parse(row) {
-    return new this.model(row);
+    return row;
   }
 
   format(model) {
-    return model.toObject();
+    return model;
   }
 
-  find(id) {
-    var query = this.builder
+  find(idOrObj) {
+    let query = this.builder
       .select()
-      .from(this.tableName)
-      .where(format('%s = ?', this.idAttribute), id);
+      .from(this.tableName);
+
+    if (_.isObject(idOrObj)) {
+      _.each(idOrObj, (value, attribute) => {
+        query = query.where(format('%s = ?', attribute), value);
+      });
+    } else {
+      query = query.where(format('%s = ?', this.idAttribute), idOrObj);
+    }
 
     return this.execute(query)
       .then((result) => {
@@ -53,24 +58,24 @@ class DataSource {
       });
   }
 
-  findAll() {
-    var query = this.builder
+  findAll(where = {}) {
+    let query = this.builder
       .select()
       .from(this.tableName);
+
+    if (_.isObject(where)) {
+      _.each(where, (value, attribute) => {
+        query = query.where(format('%s = ?', attribute), value);
+      });
+    }
 
     return this.execute(query);
   }
 
   insert(model) {
-    var fields = this.format(model);
+    let fields = _.omit(this.format(model), _.isUndefined);
 
-    _.each(fields, function(value, key) {
-      if (_.isUndefined(value)) {
-        delete fields[key];
-      }
-    });
-
-    var query = this.builder
+    let query = this.builder
       .insert()
       .into(this.tableName)
       .setFields(fields)
@@ -83,7 +88,7 @@ class DataSource {
   }
 
   update(model) {
-    var fields = this.format(model);
+    let fields = _.omit(this.format(model), _.isUndefined);
 
     _.each(fields, function(value, key) {
       if (_.isUndefined(value)) {
@@ -91,7 +96,7 @@ class DataSource {
       }
     });
 
-    var query = this.builder
+    let query = this.builder
       .update()
       .table(this.tableName)
       .setFields(fields)
@@ -105,14 +110,14 @@ class DataSource {
   }
 
   delete(idOrModel) {
-    var id;
-    if (idOrModel instanceof this.model) {
+    let id;
+    if (_.isObject(idOrModel)) {
       id = idOrModel.get(this.idAttribute);
     } else {
       id = idOrModel;
     }
 
-    var query = this.builder
+    let query = this.builder
       .delete()
       .from(this.tableName)
       .where(format('%s = ?', this.idAttribute), id);
@@ -122,19 +127,23 @@ class DataSource {
   }
 
   execute(query) {
-    return Promise.using(this._getClient(), (client) => {
-      query = query.toParam();
-
-      return client.queryAsync(query.text, query.values);
-    }).then((results) => {
+    this.execRaw(query).then((results) => {
       return results.rows.map((row) => this.parse(row));
     }).catch((err) => {
       throw PostgresError.factory(err);
     });
   }
 
+  execRaw(query) {
+    return Promise.using(this._getClient(), (client) => {
+      query = query.toParam();
+
+      return client.queryAsync(query.text, query.values);
+    });
+  }
+
   _getClient() {
-    var pool = pools.get(this.connectionString);
+    let pool = pools.get(this.connectionString);
 
     return pool.acquireAsync()
       .disposer((client) => {
